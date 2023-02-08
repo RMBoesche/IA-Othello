@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<othello-match>
+	<timing start="Tue Feb  7 18:30:11 2023" finish="Tue Feb  7 18:30:13 2023"/>
+	<player directory="advsearch.my_agent" color="B" result="draw" score="4"/>
+	<player directory="advsearch.randomplayer" color="W" result="draw" score="4"/>
+	<moves>
+		<move coord="4,5" color="B"/>
+		<move coord="3,5" color="W"/>
+		<move coord="2,3" color="B"/>
+		<move coord="3,2" color="W"/>
+	</moves>
+</othello-match>
