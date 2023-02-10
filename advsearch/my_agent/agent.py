@@ -4,16 +4,16 @@ from typing import Tuple
 from ..othello.gamestate import GameState
 from ..othello.board import Board
 
-MAX_COST_VALUE = 100000
+MAX_COST_VALUE = 10000
 MIN_COST_VALUE = -100000
 MIN = 0
 MAX = 1
 
-max_depth = 2
 _start_time = 0
 _my_player = 0
 _enemy_player = 0
 _alfa_beta_cut = 0
+max_depth = 3
 
 
 # Voce pode criar funcoes auxiliares neste arquivo
@@ -28,7 +28,7 @@ def make_move(state: GameState) -> Tuple[int, int]:
     """
     Returns an Othello move
     :param state: state to make the move
-    :return: (int, int) tuple with x, y coordinates of the move (remember: 0 is the first row/column)
+    :return: (int, int) tuple with x, y coordinates of the move (remember: 0 is the first row/c)
     """
     move = 0, 0
 
@@ -38,10 +38,10 @@ def make_move(state: GameState) -> Tuple[int, int]:
     
     # Final Burst
     free_tiles = state.board.piece_count['.']
-    if free_tiles < 20:
-        max_depth = 5
-    elif free_tiles < 10:
-        max_depth = 7
+    if free_tiles < 15:
+        max_depth = 4
+    if free_tiles < 10:
+        max_depth = 6
 
     global _start_time
     _start_time = time.time()
@@ -66,7 +66,7 @@ def next_move(state: GameState):
 
 
 def MAX(state: GameState, current_player, alpha, beta, depth=0):
-    if stop_search(depth):
+    if stop(depth):
         move_value = calculate_move_value(state), None
         return move_value
 
@@ -96,12 +96,12 @@ def MAX(state: GameState, current_player, alpha, beta, depth=0):
 
 
 def MIN(state: GameState, current_player, alpha, beta, depth=0):
-    if stop_search(depth):
+    if stop(depth):
         move_value = calculate_move_value(state), None
         return move_value
     
     if not state.board.has_legal_move(current_player):
-        return MAX(state, Board.opponent(current_player), alpha, beta, depth + 1)
+       return MAX(state, Board.opponent(current_player), alpha, beta, depth + 1)
 
     move_value = MAX_COST_VALUE, None
 
@@ -131,8 +131,11 @@ def calculate_move_value(state: GameState):
     if free_tiles >= 20:
         cost = static_cost(state)
 
+    elif free_tiles >= 5:
+        cost = static_cost(state) + 20*pieces_cost(state)
+
     elif free_tiles >= 0:
-        cost = static_cost(state) + 30*pieces_cost(state)
+        cost = static_cost(state) + 50*pieces_cost(state)
 
     return cost
 
@@ -142,23 +145,23 @@ def static_cost(state: GameState):
     tiles = state.board.tiles
 
     static_board_tile_cost = [
-        [800, -100, 20, 20, 20, 20, -100, 800],
-        [-100, -150, -15, -1, -1, -15, -150, -100],
-        [20, -15, 20, 0, 0, 20, -15, 20],
-        [20, -1, 0, 10, 10, 0, -1, 20],
-        [20, -1, 0, 10, 10, 0, -1, 20],
-        [20, -15, 20, 0, 0, 20, -15, 20],
-        [-100, -150, -15, -1, -1, -15, -150, -100],
-        [800, -100, 20, 20, 20, 20, -100, 800]
-    ]
-    for line in range(8):
-        for column in range(8):
-            static = static_board_tile_cost[column][line]
+            [1200 , -500, 200,  50,  50, 200, -500,  1200],
+            [-500, -1000, -50, -50, -50, -50, -1000, -500],
+            [200 ,  -50, 200,   0,   0, 200,  -50,  200],
+            [50  ,  -50,   0,   0,   0,   0,  -50,   50],
+            [50  ,  -50,   0,   0,   0,   0,  -50,   50],
+            [200 ,  -50, 200,   0,   0, 200,  -50,  200],
+            [-500, -1000, -50, -50, -50, -50, -1000, -500],
+            [1200 , -500, 200,  50,  50, 200, -500,  1200]
+            ]
+    for l in range(8):
+        for c in range(8):
+            static = static_board_tile_cost[c][l]
 
-            if tiles[column][line] == _my_player:
+            if tiles[c][l] == _my_player:
                 cost += static
 
-            if tiles[column][line] == _enemy_player:
+            if tiles[c][l] == _enemy_player:
                 cost -= static
     return cost
 
@@ -167,11 +170,11 @@ def pieces_cost(state: GameState):
     my_pieces = state.board.num_pieces(_my_player)
     enemy_pieces = state.board.num_pieces(_enemy_player)
 
-    pieces_cost = 100 * ((my_pieces - enemy_pieces) / (my_pieces + enemy_pieces))
+    pieces_cost = 50 * ((my_pieces - enemy_pieces) / (my_pieces + enemy_pieces))
     return int(pieces_cost)
 
 
-def stop_search(depth):
+def stop(depth):
     stop_time = time.time()
     total_time = stop_time - _start_time
 
@@ -179,7 +182,6 @@ def stop_search(depth):
         return True
 
     if depth >= max_depth:
-        # print(max_depth)
         return True
     else:
         return False

@@ -6,8 +6,8 @@ Kairan Mateus Lara Morandin     00275608
 Leonardo Droves Silveira        00296968
 Pedro Koinaski de Paiva         00302515
 
-
 ## Minimax com poda alpha-beta e limite de profundade
+
 
 O nosso algoritmo jogador de Othello foi implementado utilizando a busca MINIMAX com poda alpha-beta e limite de profundidade. O nosso limite de profundidade é variável: no início do jogo ele começa com um limite de 5 e aumenta a profundidade ao longo do desenvolvimento da partida caso identifique que a última jogada foi realizada rapidamente. Faltando 20 movimentos, ele começa a dar um "Burst", aumenta em 2 o limite de profundidade caso a jogada tenha ocorrida em menos de 0.3 segundos. Nas jogadas finais, ele procura até o fim do jogo, escolhendo uma joga ótima.
 
