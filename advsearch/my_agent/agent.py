@@ -5,7 +5,7 @@ from ..othello.gamestate import GameState
 from ..othello.board import Board
 
 MAX_COST_VALUE = 10000
-MIN_COST_VALUE = -70000
+MIN_COST_VALUE = -10000
 MIN = 0
 MAX = 1
 
@@ -13,7 +13,7 @@ _start_time = 0
 _my_player = 0
 _enemy_player = 0
 _alfa_beta_cut = 0
-max_depth = 3
+max_depth = 5
 
 
 # Voce pode criar funcoes auxiliares neste arquivo
@@ -36,11 +36,12 @@ def make_move(state: GameState) -> Tuple[int, int]:
         move = -1, -1
         return move
     
-    # Final Burst
     free_tiles = state.board.piece_count['.']
-    if free_tiles < 15:
-        max_depth = 4
     if free_tiles < 10:
+        max_depth = 10
+    elif free_tiles < 20:
+        max_depth = 8
+    elif free_tiles < 30:
         max_depth = 6
 
     global _start_time
@@ -79,11 +80,11 @@ def MAX(state: GameState, current_player, alpha, beta, depth=0):
         legal_move_value = MIN(state.next_state(legal_move), Board.opponent(current_player), alpha, beta, depth + 1)[0]
         legal_move_tuple = (legal_move_value, legal_move)
 
-        move_value = choose(MAX,
+        move_value = best_value(MAX,
                             move_value,
                             legal_move_tuple)
 
-        alpha = choose(MAX,
+        alpha = best_value(MAX,
                        alpha,
                        move_value)
 
@@ -109,11 +110,11 @@ def MIN(state: GameState, current_player, alpha, beta, depth=0):
         legal_move_value = MAX(state.next_state(legal_move), Board.opponent(current_player), alpha, beta, depth + 1)[0]
         legal_move_tuple = (legal_move_value, legal_move)
 
-        move_value = choose(MIN,
+        move_value = best_value(MIN,
                             move_value,
                             legal_move_tuple)
 
-        beta = choose(MIN,
+        beta = best_value(MIN,
                       beta,
                       move_value)
         
@@ -128,14 +129,11 @@ def MIN(state: GameState, current_player, alpha, beta, depth=0):
 def calculate_move_value(state: GameState):
     free_tiles = state.board.piece_count['.']
 
-    if free_tiles >= 20:
+    if free_tiles >= 15:
         cost = static_cost(state)
 
-    elif free_tiles >= 5:
-        cost = static_cost(state) + 20*pieces_cost(state)
-
     elif free_tiles >= 0:
-        cost = static_cost(state) + 50*pieces_cost(state)
+        cost = static_cost(state) + 25*pieces_cost(state)
 
     return cost
 
@@ -145,14 +143,14 @@ def static_cost(state: GameState):
     tiles = state.board.tiles
 
     static_board_tile_cost = [
-        [1200 , -500, 200,  50,  50, 200, -500,  1200],
-        [-500, -700, -50, -50, -50, -50, -700, -500],
-        [200 ,  -50, 200,   0,   0, 200,  -50,  200],
+        [1000 , -400, 100,  50,  50, 100, -400,  1000],
+        [-400, -500, -50, -50, -50, -50, -500, -400],
+        [100 ,  -50, 100,   0,   0, 100,  -50,  100],
         [50  ,  -50,   0,   0,   0,   0,  -50,   50],
         [50  ,  -50,   0,   0,   0,   0,  -50,   50],
-        [200 ,  -50, 200,   0,   0, 200,  -50,  200],
-        [-500, -700, -50, -50, -50, -50, -700, -500],
-        [1200 , -500, 200,  50,  50, 200, -500,  1200]
+        [100 ,  -50, 100,   0,   0, 100,  -50,  100],
+        [-400, -500, -50, -50, -50, -50, -500, -400],
+        [1000 , -400, 100,  50,  50, 100, -400,  1000]
     ]
     for l in range(8):
         for c in range(8):
@@ -187,7 +185,7 @@ def stop(depth):
         return False
 
 
-def choose(type: int, value1: tuple, value2: tuple) -> tuple:
+def best_value(type: int, value1: tuple, value2: tuple) -> tuple:
     if type == MIN:
         if value1[0] <= value2[0]:
             return value1
